@@ -1,13 +1,14 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext' // <-- Import the provider
 
+import { supabase } from './lib/supabaseClient'
 import AuthPage from './pages/AuthPage'
 import ProfileSetup from './pages/ProfileSetup'
 import VibeCheck from './pages/VibeCheck'
 import Dashboard from './pages/Dashboard'
 import Library from './pages/Library'
 import ProfileSettings from './pages/ProfileSettings'
-
+const { data } = await supabase.from('posts').select('*')
 function App() {
   return (
     <ThemeProvider> {/* <-- Wrap everything inside this */}
