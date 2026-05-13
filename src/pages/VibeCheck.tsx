@@ -1,0 +1,191 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import Navbar from '../components/layout/Navbar'
+
+const MOODS = [
+  { id: 'happy', label: 'Happy', kanji: '幸福' },
+  { id: 'sad', label: 'Sad', kanji: '悲哀' },
+  { id: 'chill', label: 'Chill', kanji: '冷静' },
+  { id: 'energetic', label: 'Energetic', kanji: '活発' },
+  { id: 'romantic', label: 'Romantic', kanji: '恋愛' },
+  { id: 'angry', label: 'Angry', kanji: '怒り' }
+]
+
+const ACTIVITIES = [
+  { id: 'study', label: 'Study / Work', icon: '📚' },
+  { id: 'workout', label: 'Workout', icon: '💪' },
+  { id: 'driving', label: 'Driving', icon: '🚗' },
+  { id: 'relax', label: 'Relaxing', icon: '🛋️' },
+  { id: 'party', label: 'Party', icon: '🎉' },
+  { id: 'gaming', label: 'Gaming', icon: '🎮' }
+]
+
+export default function VibeCheck() {
+  const navigate = useNavigate()
+  const [mood, setMood] = useState<string | null>(null)
+  const [activity, setActivity] = useState<string | null>(null)
+  const [tempo, setTempo] = useState<number>(120) // Default to standard 120 BPM
+  const [isProcessing, setIsProcessing] = useState(false)
+
+  const handleGenerate = () => {
+    if (!mood || !activity) return
+    setIsProcessing(true)
+    
+    // Simulate sending data to Python ML Backend
+    setTimeout(() => {
+      setIsProcessing(false)
+      // Route to dashboard where the AI results will be rendered
+      navigate('/dashboard')
+    }, 2000)
+  }
+
+  return (
+    <div className="min-h-screen bg-[#f4f6fa] text-music-black flex flex-col relative overflow-x-hidden">
+      
+      {/* Background Architectural Grid */}
+      <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{
+        backgroundImage: 'linear-gradient(#181324 1px,transparent 1px),linear-gradient(90deg,#181324 1px,transparent 1px)',
+        backgroundSize: '40px 40px',
+        zIndex: 0
+      }} />
+
+      {/* Persistent Navigation */}
+      <Navbar />
+
+      <main className="relative z-10 flex-1 flex flex-col items-center py-10 px-4">
+        
+        {/* Module Container */}
+        <div className="w-full max-w-4xl bg-white border-4 border-music-black shadow-[12px_12px_0px_0px_#181324]">
+          
+          {/* Header */}
+          <div className="bg-music-blue text-white px-8 py-6 border-b-4 border-music-black flex justify-between items-end">
+            <div>
+              <h1 className="text-4xl font-black tracking-tighter uppercase">Diagnostic Engine</h1>
+              <p className="text-music-grey/70 text-[11px] font-bold tracking-[0.25em] uppercase mt-1">
+                // Input parameters for Hybrid ML Scoring
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <span className="w-3 h-3 bg-music-red border border-music-black animate-pulse" />
+              <span className="w-3 h-3 bg-[#f4f6fa] border border-music-black" />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            
+            {/* Left Column: Mood & Tempo */}
+            <div className="border-r-0 md:border-r-4 border-music-black flex flex-col">
+              
+              {/* Mood Selection */}
+              <div className="p-8 border-b-4 border-music-black flex-1">
+                <div className="flex justify-between items-baseline mb-6">
+                  <h2 className="text-lg font-black tracking-widest uppercase">1. Current Mood</h2>
+                  <span className="text-[10px] font-bold text-music-red">REQUIRED</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {MOODS.map(m => (
+                    <button
+                      key={m.id}
+                      onClick={() => setMood(m.id)}
+                      className={`p-3 border-2 text-left transition-all ${
+                        mood === m.id
+                          ? 'bg-music-red border-music-red text-white shadow-[4px_4px_0px_0px_#181324] translate-x-[-2px] translate-y-[-2px]'
+                          : 'bg-music-grey/30 border-music-black hover:bg-music-grey hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#181324]'
+                      }`}
+                    >
+                      <span className="block text-sm font-black tracking-widest uppercase">{m.label}</span>
+                      <span className="block text-[10px] opacity-70 mt-1" style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>{m.kanji}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tempo Selection */}
+              <div className="p-8 bg-music-grey/20">
+                <div className="flex justify-between items-baseline mb-6">
+                  <h2 className="text-lg font-black tracking-widest uppercase">2. Target Tempo</h2>
+                  <span className="text-[10px] font-bold text-music-blue">OPTIONAL</span>
+                </div>
+                
+                <div className="mb-4 flex justify-between items-end">
+                  <span className="text-5xl font-black tracking-tighter text-music-blue">{tempo}</span>
+                  <span className="text-sm font-bold tracking-widest uppercase text-music-black/60 mb-1">BPM</span>
+                </div>
+
+                <input 
+                  type="range" 
+                  min="60" 
+                  max="180" 
+                  step="5"
+                  value={tempo}
+                  onChange={(e) => setTempo(Number(e.target.value))}
+                  className="w-full h-2 bg-music-black appearance-none outline-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:bg-music-red [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-music-black"
+                />
+                
+                <div className="flex justify-between text-[10px] font-bold tracking-widest text-music-black/50 mt-2 uppercase">
+                  <span>Slow (60)</span>
+                  <span>Fast (180+)</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column: Activity & Execution */}
+            <div className="flex flex-col">
+              
+              {/* Activity Selection */}
+              <div className="p-8 border-b-4 border-music-black flex-1">
+                <div className="flex justify-between items-baseline mb-6">
+                  <h2 className="text-lg font-black tracking-widest uppercase">3. Current Activity</h2>
+                  <span className="text-[10px] font-bold text-music-red">REQUIRED</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3">
+                  {ACTIVITIES.map(a => (
+                    <button
+                      key={a.id}
+                      onClick={() => setActivity(a.id)}
+                      className={`p-4 border-2 flex items-center gap-3 transition-all ${
+                        activity === a.id
+                          ? 'bg-music-blue border-music-blue text-white shadow-[4px_4px_0px_0px_#181324] translate-x-[-2px] translate-y-[-2px]'
+                          : 'bg-white border-music-black hover:bg-music-grey hover:translate-x-[-2px] hover:translate-y-[-2px] hover:shadow-[4px_4px_0px_0px_#181324]'
+                      }`}
+                    >
+                      <span className="text-2xl">{a.icon}</span>
+                      <span className="text-xs font-black tracking-widest uppercase leading-tight">{a.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Execution Block */}
+              <div className="p-8 bg-music-black text-white flex flex-col justify-center">
+                <div className="mb-4">
+                  <p className="text-[10px] font-bold tracking-[0.2em] text-music-red uppercase mb-1">System Status:</p>
+                  <p className="text-xs font-mono">
+                    {mood && activity ? '> READY FOR COMPILE' : '> AWAITING PARAMETERS...'}
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleGenerate}
+                  disabled={!mood || !activity || isProcessing}
+                  className={`w-full py-6 border-2 font-black text-xl tracking-[0.2em] uppercase transition-all duration-300 ${
+                    !mood || !activity
+                      ? 'bg-transparent border-music-grey/20 text-music-grey/20 cursor-not-allowed'
+                      : isProcessing
+                        ? 'bg-transparent border-music-red text-music-red cursor-wait animate-pulse'
+                        : 'bg-music-red border-music-red text-white hover:bg-white hover:text-music-red hover:shadow-[6px_6px_0px_0px_#fc6568] hover:translate-x-[-2px] hover:translate-y-[-2px]'
+                  }`}
+                >
+                  {isProcessing ? 'Processing Data...' : 'Run Algorithm'}
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  )
+}

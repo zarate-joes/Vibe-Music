@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useTheme } from '../context/ThemeContext'
 
 const MusicNote = ({ style }: { style: React.CSSProperties }) => (
   <div className="absolute font-black select-none pointer-events-none transition-colors duration-300"
@@ -59,20 +61,33 @@ function FieldBlock({ id, label, type, placeholder, value, onChange, focused, on
 
 export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true)
-  const [dark, setDark] = useState(false) // Set to false by default to showcase your new Light Mode
+  const { dark, toggleTheme } = useTheme() // Set to false by default to showcase your new Light Mode
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [nickname, setNickname] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [focused, setFocused] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => { setMounted(true) }, [])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setTimeout(() => setIsLoading(false), 1800)
+    
+    // Simulate a backend login/register, then navigate!
+    setTimeout(() => {
+      setIsLoading(false)
+      
+      if (isLogin) {
+        // If logging in, maybe go to dashboard (we'll route to setup for now to test)
+        navigate('/setup')
+      } else {
+        // If registering, definitely go to setup
+        navigate('/setup')
+      }
+    }, 1800)
   }
 
   const switchMode = () => {
@@ -159,7 +174,7 @@ export default function AuthPage() {
               </div>
               <p className={`${subText} text-[10px] font-bold tracking-[0.2em] uppercase mt-0.5 transition-colors duration-300`}
                 style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
-                AI推薦エンジン&nbsp;·&nbsp;Powered by ML
+                AI Recommendation Engine&nbsp;·&nbsp;Powered by ML
               </p>
             </div>
 
@@ -171,11 +186,11 @@ export default function AuthPage() {
               </div>
 
               {/* Theme toggle */}
-              <button
-                onClick={() => setDark(!dark)}
-                className={`flex items-center gap-1.5 px-2 py-1 border transition-all duration-200 ${toggleBorder}`}
-                title="Toggle theme"
-              >
+                <button
+                  onClick={toggleTheme} // <-- Change this from setDark(!dark) to toggleTheme
+                  className={`flex items-center gap-1.5 px-2 py-1 border transition-all duration-200 ${toggleBorder}`}
+                  title="Toggle theme"
+                >
                 <span className="text-[10px] font-black tracking-widest uppercase">
                   {dark ? '☀ Light' : '☾ Dark'}
                 </span>
@@ -205,7 +220,7 @@ export default function AuthPage() {
           <div className="px-6 py-7">
             <p className={`${sectionLbl} text-[11px] font-bold tracking-[0.18em] uppercase mb-6 transition-colors duration-300`}
               style={{ fontFamily: "'Noto Sans JP', sans-serif" }}>
-              {isLogin ? '// アカウントにアクセス' : '// 新しいプロファイル'}
+              {isLogin ? 'ア // Access your account' : '新 // Create a new profile'}
             </p>
 
             <form className="space-y-4" onSubmit={handleSubmit}>
@@ -245,7 +260,7 @@ export default function AuthPage() {
                     : 'bg-music-red border-music-red text-white hover:bg-transparent hover:text-music-red'
                 }`}
               >
-                {isLoading ? '処理中...' : isLogin ? 'Login →' : 'Create Profile →'}
+                {isLoading ? '処Loading...' : isLogin ? 'Login →' : 'Create Profile →'}
               </button>
             </form>
 
