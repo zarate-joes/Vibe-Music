@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { supabase } from '../services/supabaseClient'
 
 const MusicNote = ({ style }: { style: React.CSSProperties }) => (
   <div className="absolute font-black select-none pointer-events-none transition-colors duration-300"
@@ -72,22 +73,65 @@ export default function AuthPage() {
 
   useEffect(() => { setMounted(true) }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // 1. STRICT VALIDATION: Require nickname if they are registering
+    if (!isLogin && !nickname.trim()) {
+      alert("Registration Error: Nickname is required.")
+      return
+    }
+
+    // 2. STRICT VALIDATION: Require password to be at least 6 characters (Supabase minimum)
+    if (password.length < 6) {
+      alert("Authentication Error: Password must be at least 6 characters.")
+      return
+    }
+
     setIsLoading(true)
-    
-    // Simulate a backend login/register, then navigate!
-    setTimeout(() => {
-      setIsLoading(false)
-      
+
+    try {
       if (isLogin) {
-        // If logging in, maybe go to dashboard (we'll route to setup for now to test)
-        navigate('/setup')
+        // --- REAL SUPABASE LOGIN ---
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email,
+          password: password,
+        })
+        
+        if (error) throw error
+        
+        // Success! Go to dashboard
+        navigate('/dashboard')
+
       } else {
-        // If registering, definitely go to setup
+        // --- REAL SUPABASE REGISTRATION ---
+        const { data, error } = await supabase.auth.signUp({
+          email: email,
+          password: password,
+        })
+        
+        if (error) throw error
+
+        // Insert the profile using the NOW REQUIRED nickname
+        if (data.user) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([{ 
+              id: data.user.id, 
+              nickname: nickname.trim() // We know this exists now!
+            }])
+            
+          if (profileError) console.error("Profile creation error:", profileError)
+        }
+
+        // Success! Route new users to the setup page
         navigate('/setup')
       }
-    }, 1800)
+    } catch (error: any) {
+      alert(error.message || 'An error occurred during authentication.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   const switchMode = () => {

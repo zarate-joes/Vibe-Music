@@ -1,28 +1,46 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { ThemeProvider } from './context/ThemeContext' // <-- Import the provider
+import { ThemeProvider } from './context/ThemeContext'
+import { AuthProvider } from './context/AuthContext' // <-- Import AuthProvider
+import ProtectedRoute from './components/layout/ProtectedRoute' // <-- Import Bouncer
 
-import { supabase } from './lib/supabaseClient'
 import AuthPage from './pages/AuthPage'
 import ProfileSetup from './pages/ProfileSetup'
 import VibeCheck from './pages/VibeCheck'
 import Dashboard from './pages/Dashboard'
 import Library from './pages/Library'
 import ProfileSettings from './pages/ProfileSettings'
-const { data } = await supabase.from('posts').select('*')
+
 function App() {
   return (
-    <ThemeProvider> {/* <-- Wrap everything inside this */}
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<AuthPage />} />
-          <Route path="/setup" element={<ProfileSetup />} />
-          <Route path="/vibe" element={<VibeCheck />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/library" element={<Library />} />
-          <Route path="/profile" element={<ProfileSettings />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </BrowserRouter>
+    <ThemeProvider>
+      <AuthProvider> {/* <-- Wrap the router in the AuthProvider */}
+        <BrowserRouter>
+          <Routes>
+            {/* PUBLIC ROUTE: Anyone can see the login page */}
+            <Route path="/" element={<AuthPage />} />
+            
+            {/* SECURE ROUTES: Wrapped in the ProtectedRoute component */}
+            <Route path="/setup" element={
+              <ProtectedRoute><ProfileSetup /></ProtectedRoute>
+            } />
+            <Route path="/vibe" element={
+              <ProtectedRoute><VibeCheck /></ProtectedRoute>
+            } />
+            <Route path="/dashboard" element={
+              <ProtectedRoute><Dashboard /></ProtectedRoute>
+            } />
+            <Route path="/library" element={
+              <ProtectedRoute><Library /></ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute><ProfileSettings /></ProtectedRoute>
+            } />
+            
+            {/* Catch-all route */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </ThemeProvider>
   )
 }

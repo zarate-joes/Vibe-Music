@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
+import { useAuth } from '../context/AuthContext'          // <-- 1. Import Auth Context
+import { supabase } from '../services/supabaseClient'     // <-- 2. Import Supabase Client
 
 // Pre-defined options for the UI
 const AVAILABLE_GENRES = [
@@ -18,6 +20,7 @@ const MOODS = [
 export default function ProfileSetup() {
   const navigate = useNavigate()
   const { dark } = useTheme() // <-- Global theme state
+  const { user } = useAuth()
   
   const [age, setAge] = useState('')
   const [selectedGenres, setSelectedGenres] = useState<string[]>([])
@@ -60,18 +63,47 @@ export default function ProfileSetup() {
     setArtists(artists.filter(a => a !== artistToRemove))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Basic validation to ensure they picked a mood
+    if (!selectedMood) {
+      alert("Please select a Baseline Mood before continuing.")
+      return
+    }
+
+    if (!user) {
+      alert("Authentication error. No user found.")
+      return
+    }
+
     setIsSaving(true)
     
-    // Simulate Supabase API call
-    setTimeout(() => {
-      setIsSaving(false)
-      console.log('Saved Profile:', { age, selectedGenres, artists, selectedMood })
+    try {
+      // --- REAL SUPABASE UPDATE ---
+      // We update the row where the 'id' matches our logged-in user's UUID
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          age: parseInt(age),                   // Convert string to integer for the DB
+          baseline_genres: selectedGenres,      // Save the array of genres
+          default_mood: selectedMood            // Save the chosen mood
+        })
+        .eq('id', user.id)                      // ONLY update this specific user's row
+
+      if (error) throw error
+
+      console.log('Profile successfully saved to database!')
       
-      // Automatically route to the Vibe Check engine
+      // Route to the Vibe Check engine
       navigate('/vibe')
-    }, 1500)
+      
+    } catch (error: any) {
+      console.error('Error saving profile:', error.message)
+      alert('Failed to save profile. Please try again.')
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
