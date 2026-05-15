@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom'
-import { useState, useEffect } from 'react' // 
+import { useState } from 'react'
 import Navbar from '../components/layout/Navbar'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
@@ -12,7 +12,7 @@ export default function Dashboard() {
   const { dark } = useTheme()
   const { user } = useAuth()
   
- const [results, setResults] = useState<any[] | null>(() => {
+ const [results] = useState<any[] | null>(() => {
     if (location.state?.results) {
       localStorage.setItem('vibe_cache_results', JSON.stringify(location.state.results))
       return location.state.results

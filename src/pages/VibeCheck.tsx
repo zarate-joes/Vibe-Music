@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import { supabase } from '../services/supabaseClient'
-import { getSpotifyRecommendations } from '../services/spotifyClient'
+// import { getSpotifyRecommendations } from '../services/spotifyClient'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/ui/Modal' // <-- IMPORT MODAL
 
