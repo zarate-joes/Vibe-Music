@@ -73,7 +73,7 @@ export default function VibeCheck() {
       const { data: supabaseData, error } = await supabase.rpc('match_tracks', {
         query_embedding: queryVector,
         match_threshold: 0.5, 
-        match_count: 6,           
+        match_count: 3,           
         user_genres: userGenres   
       })
       if (error) throw error
