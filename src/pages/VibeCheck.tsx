@@ -1,6 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
+import { supabase } from '../services/supabaseClient'
+import { getSpotifyRecommendations } from '../services/spotifyClient'
+import { useAuth } from '../context/AuthContext'
+import Modal from '../components/ui/Modal' // <-- IMPORT MODAL
 
 const MOODS = [
   { id: 'happy', label: 'Happy', kanji: '幸福' },
@@ -22,42 +26,86 @@ const ACTIVITIES = [
 
 export default function VibeCheck() {
   const navigate = useNavigate()
+  const { user } = useAuth() 
+  
   const [mood, setMood] = useState<string | null>(null)
   const [activity, setActivity] = useState<string | null>(null)
-  const [tempo, setTempo] = useState<number>(120) // Default to standard 120 BPM
+  const [tempo, setTempo] = useState<number>(120)
   const [isProcessing, setIsProcessing] = useState(false)
 
-  const handleGenerate = () => {
-    if (!mood || !activity) return
+  // <-- ADD MODAL STATE
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMessage, setModalMessage] = useState({ title: '', body: '' })
+
+  const handleGenerate = async () => {
+    if (!mood || !activity || !user) return
     setIsProcessing(true)
     
-    // Simulate sending data to Python ML Backend
-    setTimeout(() => {
+    try {
+      let v_valence = 0.5, v_sentiment = 0.5, v_energy = 0.5, v_danceability = 0.5
+      const v_popularity = 0.75 
+      
+      if (mood === 'happy') { v_valence = 0.9; v_sentiment = 0.8 }
+      if (mood === 'sad') { v_valence = 0.2; v_sentiment = 0.2 }
+      if (mood === 'chill') { v_valence = 0.6; v_sentiment = 0.5 }
+      if (mood === 'energetic') { v_valence = 0.8; v_sentiment = 0.7 }
+      if (mood === 'romantic') { v_valence = 0.7; v_sentiment = 0.8 }
+      if (mood === 'angry') { v_valence = 0.3; v_sentiment = 0.1 }
+
+      if (activity === 'workout') { v_energy = 0.9; v_danceability = 0.7 }
+      if (activity === 'study') { v_energy = 0.3; v_danceability = 0.2 }
+      if (activity === 'party') { v_energy = 0.8; v_danceability = 0.9 }
+      if (activity === 'relax') { v_energy = 0.2; v_danceability = 0.3 }
+      if (activity === 'driving') { v_energy = 0.6; v_danceability = 0.5 }
+      if (activity === 'gaming') { v_energy = 0.7; v_danceability = 0.4 }
+
+      const v_tempo = tempo / 200;
+      const queryVector = [v_popularity, v_tempo, v_energy, v_valence, v_danceability, v_sentiment]
+
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('baseline_genres')
+        .eq('id', user.id)
+        .single()
+
+      const userGenres = profileData?.baseline_genres?.map((g: string) => g.toLowerCase()) || []
+
+      const { data: supabaseData, error } = await supabase.rpc('match_tracks', {
+        query_embedding: queryVector,
+        match_threshold: 0.5, 
+        match_count: 6,           
+        user_genres: userGenres   
+      })
+
+      if (error) throw error
+
+      navigate('/dashboard', { state: { results: supabaseData, vector: queryVector } })
+
+    } catch (error: any) {
+      console.error("ML Query Error:", error.message)
+      // <-- REPLACED ALERT WITH MODAL
+      setModalMessage({ title: 'Engine Failure', body: 'Algorithm execution failed. Please check your connection and try again.' })
+      setModalOpen(true)
+    } finally {
       setIsProcessing(false)
-      // Route to dashboard where the AI results will be rendered
-      navigate('/dashboard')
-    }, 2000)
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#f4f6fa] text-music-black flex flex-col relative overflow-x-hidden">
       
-      {/* Background Architectural Grid */}
       <div className="absolute inset-0 opacity-[0.04] pointer-events-none" style={{
         backgroundImage: 'linear-gradient(#181324 1px,transparent 1px),linear-gradient(90deg,#181324 1px,transparent 1px)',
         backgroundSize: '40px 40px',
         zIndex: 0
       }} />
 
-      {/* Persistent Navigation */}
       <Navbar />
 
       <main className="relative z-10 flex-1 flex flex-col items-center py-10 px-4">
         
-        {/* Module Container */}
         <div className="w-full max-w-4xl bg-white border-4 border-music-black shadow-[12px_12px_0px_0px_#181324]">
           
-          {/* Header */}
           <div className="bg-music-blue text-white px-8 py-6 border-b-4 border-music-black flex justify-between items-end">
             <div>
               <h1 className="text-4xl font-black tracking-tighter uppercase">Diagnostic Engine</h1>
@@ -73,10 +121,8 @@ export default function VibeCheck() {
 
           <div className="grid grid-cols-1 md:grid-cols-2">
             
-            {/* Left Column: Mood & Tempo */}
             <div className="border-r-0 md:border-r-4 border-music-black flex flex-col">
               
-              {/* Mood Selection */}
               <div className="p-8 border-b-4 border-music-black flex-1">
                 <div className="flex justify-between items-baseline mb-6">
                   <h2 className="text-lg font-black tracking-widest uppercase">1. Current Mood</h2>
@@ -101,7 +147,6 @@ export default function VibeCheck() {
                 </div>
               </div>
 
-              {/* Tempo Selection */}
               <div className="p-8 bg-music-grey/20">
                 <div className="flex justify-between items-baseline mb-6">
                   <h2 className="text-lg font-black tracking-widest uppercase">2. Target Tempo</h2>
@@ -130,10 +175,8 @@ export default function VibeCheck() {
               </div>
             </div>
 
-            {/* Right Column: Activity & Execution */}
             <div className="flex flex-col">
               
-              {/* Activity Selection */}
               <div className="p-8 border-b-4 border-music-black flex-1">
                 <div className="flex justify-between items-baseline mb-6">
                   <h2 className="text-lg font-black tracking-widest uppercase">3. Current Activity</h2>
@@ -158,7 +201,6 @@ export default function VibeCheck() {
                 </div>
               </div>
 
-              {/* Execution Block */}
               <div className="p-8 bg-music-black text-white flex flex-col justify-center">
                 <div className="mb-4">
                   <p className="text-[10px] font-bold tracking-[0.2em] text-music-red uppercase mb-1">System Status:</p>
@@ -186,6 +228,16 @@ export default function VibeCheck() {
           </div>
         </div>
       </main>
+
+      {/* <-- MOUNT MODAL HERE */}
+      <Modal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        title={modalMessage.title}
+      >
+        <p>{modalMessage.body}</p>
+      </Modal>
+
     </div>
   )
 }

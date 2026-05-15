@@ -6,8 +6,27 @@ import { supabase } from '../services/supabaseClient'     // <-- 2. Import Supab
 
 // Pre-defined options for the UI
 const AVAILABLE_GENRES = [
-  'Pop', 'Rock', 'R&B', 'Hip-Hop', 'Electronic', 
-  'Jazz', 'Classical', 'J-Pop', 'K-Pop', 'Indie', 'Acoustic'
+  'Pop', 
+  'Rock', 
+  'Hip-Hop', 
+  'R&B', 
+  'EDM', 
+  'Classical', 
+  'Jazz', 
+  'Country', 
+  'Indie', 
+  'Lo-Fi', 
+  'Metal', 
+  'K-Pop',
+  'J-Pop', 
+  'Latin', 
+  'Reggae',
+  'Soul',
+  'Punk',
+  'Acoustic',
+  'House',
+  'Alternative',
+  'Afrobeats'
 ]
 
 const MOODS = [

@@ -4,9 +4,33 @@ import Navbar from '../components/layout/Navbar'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../services/supabaseClient'
+import Modal from '../components/ui/Modal'
 
 // Pre-defined options matching your setup
-const AVAILABLE_GENRES = ['Pop', 'Rock', 'R&B', 'Hip-Hop', 'Electronic', 'Jazz', 'Classical', 'J-Pop', 'K-Pop', 'Indie', 'Acoustic']
+const AVAILABLE_GENRES = [
+  'Pop', 
+  'Rock', 
+  'Hip-Hop', 
+  'R&B', 
+  'EDM', 
+  'Classical', 
+  'Jazz', 
+  'Country', 
+  'Indie', 
+  'Lo-Fi', 
+  'Metal', 
+  'K-Pop',
+  'J-Pop', 
+  'Latin', 
+  'Reggae',
+  'Soul',
+  'Punk',
+  'Acoustic',
+  'House',
+  'Alternative',
+  'Afrobeats'
+]
+
 const MOODS = [
   { id: 'chill', label: 'Chill', kanji: 'リラックス' },
   { id: 'energy', label: 'Energy', kanji: 'エネルギッシュ' },
@@ -28,6 +52,9 @@ export default function ProfileSettings() {
   // Loading states
   const [isLoadingData, setIsLoadingData] = useState(true)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  const [modalOpen, setModalOpen] = useState(false)
+  const [modalMessage, setModalMessage] = useState({ title: '', body: '' })
 
   // ── 1. READ: Fetch user data on load ──────────────────────────────────
   useEffect(() => {
@@ -85,17 +112,19 @@ export default function ProfileSettings() {
         .eq('id', user.id)
 
       if (error) throw error
-      alert('System Parameters synchronized successfully.')
+      setModalMessage({ title: 'Success', body: 'System Parameters synchronized successfully.' })
+      setModalOpen(true)
     } catch (error: any) {
-      console.error("Error updating profile:", error.message)
-      alert('Failed to update parameters.')
+      setModalMessage({ title: 'Error', body: 'Failed to update parameters. Please try again.' })
+      setModalOpen(true)
     } finally {
       setIsUpdating(false)
     }
   }
 
-  // ── 3. AUTH LOGOUT ──────────────────────────────────────────────────
   const handleLogout = async () => {
+    // Clear the AI cache so it doesn't bleed over to the next session
+    localStorage.removeItem('vibe_cache_results') 
     await supabase.auth.signOut()
     navigate('/')
   }
@@ -259,6 +288,14 @@ export default function ProfileSettings() {
 
         </div>
       </main>
+      {/* Interactive Modal Component */}
+      <Modal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        title={modalMessage.title}
+      >
+        <p>{modalMessage.body}</p>
+      </Modal>
     </div>
   )
 }
