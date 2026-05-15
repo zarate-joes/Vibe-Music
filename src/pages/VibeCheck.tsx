@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Navbar from '../components/layout/Navbar'
 import { supabase } from '../services/supabaseClient'
-// import { getSpotifyRecommendations } from '../services/spotifyClient'
+import { getLastfmRecommendations } from '../services/lastfmClient'
 import { useAuth } from '../context/AuthContext'
 import Modal from '../components/ui/Modal' // <-- IMPORT MODAL
 
@@ -76,10 +76,34 @@ export default function VibeCheck() {
         match_count: 6,           
         user_genres: userGenres   
       })
-
       if (error) throw error
+      
+      // ==========================================
+      // BRAIN 2: THE LAST.FM SUB-BRAIN
+      // ==========================================
+      let externalData: any[] = []
+      
+      if (supabaseData && supabaseData.length > 0) {
+        // Grab the top match from Supabase
+        const topMatch = supabaseData[0] 
+        
+        if (topMatch.artists && topMatch.track_name) {
+          try {
+            // Ask Last.fm for 3 global tracks based on your AI's top pick
+            externalData = await getLastfmRecommendations(topMatch.artists, topMatch.track_name, 3)
+          } catch (apiErr) {
+            console.error("Last.fm Sub-Brain failed:", apiErr)
+          }
+        }
+      }
 
-      navigate('/dashboard', { state: { results: supabaseData, vector: queryVector } })
+      // ==========================================
+      // THE HYBRID MERGE
+      // ==========================================
+      const combinedResults = [...(supabaseData || []), ...externalData]
+
+      // Route to dashboard!
+      navigate('/dashboard', { state: { results: combinedResults, vector: queryVector } })
 
     } catch (error: any) {
       console.error("ML Query Error:", error.message)

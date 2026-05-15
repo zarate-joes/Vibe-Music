@@ -91,21 +91,21 @@ export default function Dashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {results.map((track: any, index: number) => {
-              const isSpotify = track.track_genre === 'Spotify Global';
+              const isExternal = track.track_genre === 'External API';
               
               return (
                 <div key={track.id} className={`${cardBg} border-4 ${border} ${shadow} flex flex-col transition-transform hover:-translate-y-1 relative overflow-hidden`}>
                   
-                  {/* Badge for Spotify Tracks */}
-                  {isSpotify && (
-                    <div className="absolute top-0 right-0 bg-[#1DB954] text-white text-[8px] font-black tracking-widest px-3 py-1 uppercase z-10">
-                      Spotify API
+                  {/* Badge for External Tracks */}
+                  {isExternal && (
+                    <div className="absolute top-0 right-0 bg-music-red text-white text-[8px] font-black tracking-widest px-3 py-1 uppercase z-10">
+                      External API
                     </div>
                   )}
 
                   <div className={`p-4 border-b-2 ${border} bg-music-black/5 flex justify-between items-center`}>
-                    <span className={`text-[10px] font-black tracking-widest uppercase ${isSpotify ? 'text-[#1DB954]' : 'text-music-red'}`}>
-                      {isSpotify ? 'Global Match' : `Internal 0${index + 1}`}
+                    <span className={`text-[10px] font-black tracking-widest uppercase ${isExternal ? 'text-music-red' : 'text-[#1DB954]'}`}>
+                      {isExternal ? 'External API' : `Internal 0${index + 1}`}
                     </span>
                     <span className="text-xs font-black">
                       {typeof track.similarity === 'number' ? `${Math.round(track.similarity * 100)}% Sync` : 'AI Seed Match'}
@@ -137,13 +137,13 @@ export default function Dashboard() {
                       
                       <button 
                         onClick={() => handleSaveTrack(track.id, track.similarity)}
-                        disabled={savingId === track.id || isSpotify}
+                        disabled={savingId === track.id || isExternal}
                         className={`flex-1 py-3 text-center border-2 text-[10px] font-black tracking-widest uppercase transition-colors 
-                          ${isSpotify 
+                          ${isExternal 
                             ? 'border-music-grey/30 text-music-grey/50 cursor-not-allowed' 
                             : 'border-music-red text-music-red hover:bg-music-red hover:text-white disabled:opacity-50'}`}
                       >
-                        {isSpotify ? 'External' : savingId === track.id ? 'Saving...' : 'Save'}
+                        {isExternal ? 'External' : savingId === track.id ? 'Saving...' : 'Save'}
                       </button>
                     </div>
                   </div>
